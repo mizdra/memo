@@ -1,0 +1,15 @@
+[
+    {
+        "title": "aaa",
+        "url": "https://github.com/mizdra/memo",
+        "tags": [],
+        "relatedItems": [
+            {
+                "title": "Dummy",
+                "URL": "http://example.com/"
+            }
+        ],
+        "content": "body",
+        "date": "2021-01-16T12:20:37.737Z"
+    }
+]
