@@ -1,0 +1,52 @@
+name: Issue update memo
+# If create an issue with "Type:Memo", create a memo from issue.
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+jobs:
+  update-memo:
+    runs-on: ubuntu-18.04
+    if: contains(github.event.issue.labels.*.name, 'Type:Memo')
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      # Update Memo
+      - name: Update Memo
+        run: cd actions/update-memo && yarn install && yarn ts-node-transpile-only index-issue.ts
+        env:
+          ISSUE: ${{ toJSON(github.event.issue) }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPDATE_MARKDOWN: true
+          DISABLE_NOTIFICATION: "false" # if true, do not comment as reply
+      - name: Commit Memo
+        uses: EndBug/add-and-commit@v6
+        with:
+          message: "Update Memo"
+          push: true
+      # Create draft and create pull request
+      - name: Create Draft Post
+        run: yarn install && yarn ts-node-transpile-only index.ts
+        env:
+          PAYLOAD: "{}"
+          PRIVATE: ${{ github.event.repository.private }}
+        working-directory: actions/create-draft-post
+      - name: Create Draft Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: Draft Post
+          branch: draft
+          delete-branch: true
+          title: "Draft Post"
+          body: |
+            - [ ] Write Headline
+          labels: |
+            Type:Post
+      - name: Check Draft Post PR
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
